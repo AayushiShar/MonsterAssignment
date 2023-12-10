@@ -1,0 +1,159 @@
+import java.lang.reflect.Field;
+import java.util.*;
+
+
+
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the number of monsters  to created:");
+        int n = scanner.nextInt();
+        scanner.nextLine();
+        List<Monster> m = new ArrayList<>();
+
+        // Create monsters with user input
+        for (int i = 0; i < n; i++) {
+            m.add(MonsterCreation(scanner, "Monster " + (i + 1)));
+        }
+
+        // Create babies by combining traits
+        Set<Monster> monsterbabies = BabiesCreation(m);
+
+        // Display traits of the baby monsters
+        System.out.println("\nBaby Monsters Traits:");
+        for (Monster babyMonster : monsterbabies) {
+            MonsterTraits(babyMonster);
+        }
+    }
+    private static Monster MonsterCreation(Scanner sc, String Name) {
+        System.out.println("Enter traits for " + Name + ":");
+        System.out.print("Eye Color: ");
+        String eyeColor = sc.nextLine();
+
+        System.out.print("Feather Color: ");
+        String featherColor = sc.nextLine();
+
+        System.out.print("Magical Abilities: ");
+        String magicalAbilities = sc.nextLine();
+
+        System.out.print("Size: ");
+        int size = sc.nextInt();
+
+        System.out.print("Strength: ");
+        int strength = sc.nextInt();
+        System.out.print("Durability: ");
+        int durability = sc.nextInt();
+        System.out.print("Weakness: ");
+        sc.nextLine();
+        String weakness = sc.nextLine();
+        System.out.print("Aggression Level: ");
+        int aggressionLevel = sc.nextInt();
+        sc.nextLine();
+        return new Monster(eyeColor, featherColor, magicalAbilities, size,
+                strength, durability, weakness, aggressionLevel);
+    }
+    private static Set<Monster> BabiesCreation(List<Monster> Parents) {
+        // set to ensure uniqueness for same set of parents if we want to create multiple babies.
+        Set<Monster> monsterbabies = new HashSet<>();
+        int n = Parents.size();
+        // Generate multiple unique babies out of many combinations of parent monsters.
+        // eg no of parents =3 then combinations are - (1,2),(1,3),(2,3).
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                Monster parent1 = Parents.get(i);
+                Monster parent2 = Parents.get(j);
+
+                Monster babyMonster = Monster.BabyMonsterCreation(parent1, parent2);
+
+                // Ensure uniqueness
+                // if that baby is present, create another baby for same parents.
+                while (monsterbabies.contains(babyMonster)) {
+
+                    babyMonster = Monster.BabyMonsterCreation(parent1, parent2);
+                }
+
+                monsterbabies.add(babyMonster);
+
+            }
+        }
+
+
+        return babies;
+    }
+    private static void MonsterTraits(Monster monster) {
+        Field[] fields = Monster.class.getDeclaredFields();
+
+        System.out.println("Monster Traits:");
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            try {
+                System.out.println(field.getName() + ": " + field.get(monster));
+            } catch (IllegalAccessException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        System.out.println();
+    }
+}
+class Monster {
+    String eyeColor;
+    String featherColor;
+    String magicalAbilities;
+    int size;
+    int strength;
+
+    int  durability;
+    String weakness;
+    int aggressionLevel;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Monster m = (Monster) o;
+        return size == m.size && strength == m.strength && durability == m.durability && aggressionLevel == m.aggressionLevel && Objects.equals(eyeColor, m.eyeColor) && Objects.equals(featherColor, m.featherColor) && Objects.equals(magicalAbilities, m.magicalAbilities) && Objects.equals(weakness, m.weakness);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(eyeColor, featherColor, magicalAbilities, size, strength, durability, weakness, aggressionLevel);
+    }
+
+    public Monster() {
+        // Default constructor
+    }
+
+    public Monster(String eyeColor, String featherColor, String magicalAbilities, int size,
+                   int strength, int durability, String weakness, int aggressionLevel) {
+        this.eyeColor = eyeColor;
+        this.featherColor = featherColor;
+        this.magicalAbilities = magicalAbilities;
+        this.size = size;
+        this.strength = strength;
+        this.durability = durability;
+        this.weakness = weakness;
+        this.aggressionLevel = aggressionLevel;
+    }
+    public static Monster BabyMonsterCreation(Monster parent1, Monster parent2) {
+        Monster babyMonster = new Monster();
+
+        // Get all fields using reflection
+        Field[] fields = Monster.class.getDeclaredFields();
+
+        // Randomly copy traits from parents to the baby monster
+        Random random = new Random();
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            try {
+                Object parentTrait = random.nextBoolean() ? field.get(parent1) : field.get(parent2);
+                field.set(babyMonster, parentTrait);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return babyMonster;
+    }
+}
